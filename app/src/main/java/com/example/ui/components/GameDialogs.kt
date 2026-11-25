@@ -749,10 +749,10 @@ fun SettingsPopupOverlay(
         }
       }
 
-      // Off-white/cream rounded tray behind the 3 top grouped toggle icons (matching reference)
-      val trayW = cardW * (if (isHomeSettings) 0.858f else 0.810f)
-      val trayH = cardH * (if (isHomeSettings) 0.194f else 0.160f)
-      val trayTopY = cardH * (if (isHomeSettings) 0.224f else 0.174f)
+      // Off-white/cream rounded tray behind the 3 top grouped toggle icons (neatly inset inside blue frame)
+      val trayW = cardW * (if (isHomeSettings) 0.790f else 0.800f)
+      val trayH = cardH * (if (isHomeSettings) 0.176f else 0.156f)
+      val trayTopY = cardH * (if (isHomeSettings) 0.262f else 0.180f)
       val trayX = (cardW - trayW) * 0.5f
       Canvas(
         modifier =
@@ -824,13 +824,14 @@ fun SettingsPopupOverlay(
         }
       }
 
-      // Top row: Slot 1 = Volume, Slot 2 = Vibrate, Slot 3 = Guide
-      val iconBoxW = cardW * (if (isHomeSettings) 0.205f else 0.172f)
-      val iconBoxH = maxOf(48.dp, if (isHomeSettings) cardH * 0.140f else iconBoxW * 0.94f)
+      // Top row: Slot 1 = Volume, Slot 2 = Vibrate, Slot 3 = Guide (evenly centered inside cream tray)
+      val iconBoxW = cardW * (if (isHomeSettings) 0.185f else 0.170f)
+      val iconBoxH = maxOf(48.dp, if (isHomeSettings) trayH * 0.72f else iconBoxW * 0.94f)
       val iconTopY = trayTopY + (trayH - iconBoxH) * 0.5f
-      val slot1X = if (isHomeSettings) cardW * 0.150f else trayX + cardW * 0.072f
-      val slot2X = if (isHomeSettings) cardW * 0.3975f else slot1X + iconBoxW + cardW * 0.075f
-      val slot3X = if (isHomeSettings) cardW * 0.645f else slot2X + iconBoxW + cardW * 0.075f
+      val iconGap = (trayW - iconBoxW * 3f) / 4f
+      val slot1X = trayX + iconGap
+      val slot2X = slot1X + iconBoxW + iconGap
+      val slot3X = slot2X + iconBoxW + iconGap
 
       // 1. Volume (ON / OFF muted speaker)
       SettingsSpriteButton(
@@ -913,7 +914,7 @@ fun SettingsPopupOverlay(
         )
       }
 
-      val supportY = if (isHomeSettings) cardH * 0.462f else cardH * 0.590f
+      val supportY = if (isHomeSettings) cardH * 0.466f else cardH * 0.590f
       val langY = if (isHomeSettings) cardH * 0.632f else cardH * 0.709f
 
       SettingsSpriteButton(
@@ -3564,8 +3565,8 @@ fun ShopDialog(
           }
         }
 
-        val smallTrayW = cardW * 0.285f
-        val smallTrayH = cardH * 0.390f
+        val smallTrayW = cardW * 0.288f
+        val smallTrayH = cardH * 0.370f
         val smallQtyOne = stringResource(R.string.shop_booster_qty_one)
         val smallQtyStyle =
           MaterialTheme.typography.labelLarge.copy(
@@ -3577,13 +3578,13 @@ fun ShopDialog(
         Box(
           modifier =
             Modifier
-              .offset(x = cardW * 0.630f, y = cardH * 0.176f)
+              .offset(x = cardW * 0.628f, y = cardH * 0.186f)
               .size(width = smallTrayW, height = smallTrayH)
               .testTag("shop_small_pack_booster_tray"),
           contentAlignment = Alignment.Center,
         ) {
           Image(
-            painter = painterResource(id = R.drawable.panel_shop_small_pack_tray),
+            painter = painterResource(id = R.drawable.panel_starter_pack_blue_tray),
             contentDescription = stringResource(R.string.shop_small_pack_tray_desc),
             contentScale = ContentScale.FillBounds,
             modifier = Modifier.fillMaxSize(),
@@ -5445,22 +5446,103 @@ fun StarterPackDialog(
         )
       }
 
-      // 5. Middle boosters box (VIP x2, Bus x2, Refresh x2) sized & centered cleanly below chest
-      val rewardW = cardW * 0.50f
-      val rewardH = rewardW * (289f / 777f)
-      Image(
-        painter = painterResource(id = R.drawable.panel_starter_pack_rewards),
-        contentDescription = "2 VIP, 2 Bus Clear, 2 Refresh",
-        contentScale = ContentScale.Fit,
+      // 5. Middle blue rewards box with VIP x2, Bus x2, Refresh x2 arranged in order
+      val rewardW = cardW * 0.54f
+      val rewardH = cardH * 0.158f
+      val qtyTwoLabel = stringResource(R.string.shop_booster_qty_two)
+      val starterQtyStyle =
+        MaterialTheme.typography.labelLarge.copy(
+          fontFamily = LilitaOneFontFamily,
+          fontSize = (rewardH.value * 0.25f).coerceIn(13f, 20f).sp,
+          fontWeight = FontWeight.Normal,
+          letterSpacing = 0.2.sp,
+        )
+      Box(
         modifier =
           Modifier
             .align(Alignment.TopCenter)
-            .offset(y = cardH * 0.602f)
+            .offset(y = cardH * 0.592f)
             .size(width = rewardW, height = rewardH)
             .testTag("starter_pack_rewards_panel"),
-      )
+        contentAlignment = Alignment.Center,
+      ) {
+        Image(
+          painter = painterResource(id = R.drawable.panel_starter_pack_blue_tray),
+          contentDescription = "2 VIP, 2 Bus Clear, 2 Refresh",
+          contentScale = ContentScale.FillBounds,
+          modifier = Modifier.fillMaxSize(),
+        )
+        Row(
+          modifier =
+            Modifier
+              .fillMaxSize()
+              .padding(horizontal = rewardW * 0.065f, vertical = rewardH * 0.075f),
+          horizontalArrangement = Arrangement.SpaceEvenly,
+          verticalAlignment = Alignment.CenterVertically,
+        ) {
+          val starterDialogBoosters =
+            listOf(
+              Pair(R.drawable.ic_shop_booster_vip, R.string.shop_booster_vip_desc),
+              Pair(R.drawable.ic_shop_booster_bus, R.string.shop_booster_bus_desc),
+              Pair(R.drawable.ic_shop_booster_refresh, R.string.shop_booster_refresh_desc),
+            )
+          starterDialogBoosters.forEach { (iconRes, descRes) ->
+            Box(
+              modifier = Modifier.weight(1f).fillMaxSize(),
+              contentAlignment = Alignment.TopCenter,
+            ) {
+              Image(
+                painter = painterResource(id = iconRes),
+                contentDescription = stringResource(descRes),
+                contentScale = ContentScale.Fit,
+                modifier =
+                  Modifier
+                    .fillMaxWidth(0.90f)
+                    .height(rewardH * 0.62f)
+                    .padding(top = rewardH * 0.02f),
+              )
+              Box(
+                modifier =
+                  Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = rewardH * 0.01f),
+                contentAlignment = Alignment.Center,
+              ) {
+                Text(
+                  text = qtyTwoLabel,
+                  style =
+                    starterQtyStyle.copy(
+                      drawStyle = Stroke(width = 6.0f, join = StrokeJoin.Round),
+                    ),
+                  color = Color.Black,
+                  maxLines = 1,
+                  softWrap = false,
+                  modifier = Modifier.offset(y = 0.9.dp),
+                )
+                Text(
+                  text = qtyTwoLabel,
+                  style =
+                    starterQtyStyle.copy(
+                      drawStyle = Stroke(width = 4.8f, join = StrokeJoin.Round),
+                    ),
+                  color = Color.Black,
+                  maxLines = 1,
+                  softWrap = false,
+                )
+                Text(
+                  text = qtyTwoLabel,
+                  style = starterQtyStyle,
+                  color = Color.White,
+                  maxLines = 1,
+                  softWrap = false,
+                )
+              }
+            }
+          }
+        }
+      }
 
-      // 6. Bottom glossy green price button with bold outlined "Rs 550.00" text
+      // 6. Bottom glossy green price button with bold outlined "Rs 550.00" text & red "50% OFF" ribbon
       val priceW = cardW * 0.510f
       val priceH = priceW * (191f / 594f)
       val priceInteraction = remember { MutableInteractionSource() }
@@ -5553,6 +5635,21 @@ fun StarterPackDialog(
               textAlign = TextAlign.Center,
               maxLines = 1,
               softWrap = false,
+            )
+          }
+          if (!alreadyClaimed) {
+            val badgeW = priceW * 0.56f
+            val badgeH = badgeW * (137f / 404f)
+            Image(
+              painter = painterResource(id = R.drawable.badge_shop_50_off),
+              contentDescription = stringResource(R.string.shop_starter_pack_discount_badge),
+              contentScale = ContentScale.Fit,
+              modifier =
+                Modifier
+                  .align(Alignment.TopEnd)
+                  .offset(x = priceW * 0.035f, y = -badgeH * 0.55f)
+                  .size(width = badgeW, height = badgeH)
+                  .testTag("starter_pack_discount_badge"),
             )
           }
         }

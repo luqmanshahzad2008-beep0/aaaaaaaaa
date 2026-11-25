@@ -5,8 +5,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -28,21 +28,11 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onPreviewKeyEvent
-import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -55,15 +45,11 @@ import com.example.game.GameUiState
 import com.example.game.GameViewModel
 import com.example.ui.components.BoosterPurchaseDialog
 import com.example.ui.components.CoinPill
-import com.example.ui.components.ConveyorTrackView
 import com.example.ui.components.HelpDialog
 import com.example.ui.components.LoseLevelDialog
-import com.example.ui.components.ParkingLotCanvas
 import com.example.ui.components.PauseDialog
-import com.example.ui.components.PlayfieldEffectsOverlay
 import com.example.ui.components.ShopDialog
 import com.example.ui.components.UnlockSlotDialog
-import com.example.ui.components.WaitingSlotsRow
 import com.example.ui.components.WinLevelDialog
 import com.example.ui.theme.FredokaFontFamily
 
@@ -86,88 +72,33 @@ fun GameScreen(
     }
   }
 
-  // Smooth 60fps simulation ticker
-  LaunchedEffect(uiState.outcome, uiState.levelNumber) {
-    if (uiState.outcome != GameOutcome.PLAYING) return@LaunchedEffect
-    var lastNanos = 0L
-    while (true) {
-      withFrameNanos { frameNanos ->
-        if (lastNanos != 0L) {
-          val dt = (frameNanos - lastNanos) / 1_000_000_000f
-          viewModel.onFrame(dt)
-        }
-        lastNanos = frameNanos
-      }
-    }
-  }
-
-  val focusRequester = remember { FocusRequester() }
-  LaunchedEffect(Unit) {
-    focusRequester.requestFocus()
-  }
-
   BoxWithConstraints(
     modifier =
       modifier
         .fillMaxSize()
-        .focusRequester(focusRequester)
-        .focusable()
-        .onPreviewKeyEvent { event ->
-          if (event.type == KeyEventType.KeyDown && event.key == Key.D) {
-            viewModel.toggleLaneDebug()
-            true
-          } else {
-            false
-          }
-        }
+        .background(Color(0xFF00B8FF))
   ) {
     val screenH = maxHeight
 
-    // 1. Exact full-bleed gameplay background (glossy racetrack + waiting bays + yellow curbs + corner park bushes)
+    // 1. Clean full-bleed gameplay background (sky + clouds, green park strip, waiting bays, curbs & corner bushes)
     Image(
-      painter = painterResource(id = R.drawable.game_play_bg),
+      painter = painterResource(id = R.drawable.game_play_bg_clean),
       contentDescription = null,
       contentScale = ContentScale.FillBounds,
       modifier = Modifier.fillMaxSize(),
     )
 
-    // 2. ZONE 1: Passengers circulating along the background's oval road loop & left/right arms
-    ConveyorTrackView(
-      passengers = uiState.passengers,
-      conveyorOffsetPx = uiState.conveyorOffsetPx,
-      remainingCount = uiState.passengers.size,
-      showLaneDebug = uiState.showLaneDebug,
-      onViewportSized = { w, h -> viewModel.updateLaneViewport(w, h) },
-      modifier = Modifier.fillMaxSize(),
-    )
-
-    // 3. WAITING BAYS: 8 tilted bays aligned 1-to-1 with the background stand slots
-    WaitingSlotsRow(
-      slots = uiState.slots,
-      vehicles = uiState.vehicles,
-      jumpingPassengers = uiState.jumpingPassengers,
-      onSlotTap = { viewModel.onSlotTapped(it) },
-      modifier = Modifier.fillMaxSize(),
-    )
-
-    // 4. ZONE 2: Middle Parking Lot + Tunnels + Vehicles positioned cleanly inside the grey asphalt area
-    Box(
+    // 2. Glossy navy oval road loop & entry arms spanning top sky down onto the parking lot top curb
+    Image(
+      painter = painterResource(id = R.drawable.game_oval_road_loop_v3),
+      contentDescription = null,
+      contentScale = ContentScale.FillBounds,
       modifier =
         Modifier
-          .offset(y = screenH * 0.452f)
+          .align(Alignment.TopCenter)
           .fillMaxWidth()
-          .height(screenH * 0.455f)
-    ) {
-      ParkingLotCanvas(
-        gridCols = uiState.gridCols,
-        gridRows = uiState.gridRows,
-        vehicles = uiState.vehicles,
-        tunnels = uiState.tunnels,
-        tutorialVehicleId = uiState.tutorialVehicleId,
-        onLotTap = { gx, gy -> viewModel.onLotTap(gx, gy) },
-        modifier = Modifier.fillMaxSize(),
-      )
-    }
+          .height(screenH * 0.312f),
+    )
 
     val screenW = maxWidth
     val hudW = minOf(screenW, 560.dp)
@@ -301,17 +232,7 @@ fun GameScreen(
       )
     }
 
-    // 7. Full-bleed Playfield Effects Overlay (Driving buses + dotted trail, jumping stickmen, confetti, "+1")
-    PlayfieldEffectsOverlay(
-      vehicles = uiState.vehicles,
-      gridCols = uiState.gridCols,
-      gridRows = uiState.gridRows,
-      jumpingPassengers = uiState.jumpingPassengers,
-      particles = uiState.particles,
-      floatingTexts = uiState.floatingTexts,
-      totalSlots = uiState.slots.size,
-      modifier = Modifier.fillMaxSize(),
-    )
+    // Playfield cleared as requested — ready for new background, road, passengers, and vehicles.
 
     // 8. Pause / Settings full-screen dark dim overlay + glossy Settings card
     AnimatedVisibility(
